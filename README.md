@@ -13,12 +13,13 @@
 
 ## About CareerPilot
 
-CareerPilot helps job seekers optimize their applications using AI. Simply upload your resume (PDF) and paste a job description — the system runs 4 specialized AI agents in parallel to:
+CareerPilot helps job seekers optimize their applications using AI. Simply upload your resume (PDF) and paste a job description — the system runs 5 specialized AI agents in parallel to:
 
 1. **Resume Fix** — rewrites bullet points to match job description keywords
 2. **Cover Letter** — generates a professional 3-paragraph cover letter
 3. **How to Speak** — provides scripts for self-introductions, project explanations, and interview answers
 4. **Skill Gaps** — identifies missing skills and suggests free learning resources
+5. **ATS Score** — calculates an overall match score (0-100) with detailed breakdown
 
 All results are saved to your history, and you can download a full PDF report.
 
@@ -33,20 +34,21 @@ Frontend (React) sends data to Backend (FastAPI)
            ↓
 Backend parses PDF with PyMuPDF → extracts text
            ↓
-LangGraph orchestrates 4 AI agents running in parallel
+LangGraph orchestrates 5 AI agents running in parallel
            ↓
 Each agent calls Groq LLM (llama-3.3-70b-versatile) via LangChain
            ├─ Resume Tailor Agent
            ├─ Cover Letter Agent
            ├─ How to Speak Agent
-           └─ Skill Gap Agent
+           ├─ Skill Gap Agent
+           └─ ATS Scorer Agent
            ↓
 Results saved to Supabase database
            ↓
 Frontend displays results in tabs + PDF download option
 ```
 
-**Why parallel execution?** Running 4 agents sequentially would take ~40 seconds. Running them in parallel via `asyncio.gather` takes ~10 seconds.
+**Why parallel execution?** Running 5 agents sequentially would take ~50 seconds. Running them in parallel via `asyncio.gather` takes ~10 seconds.
 
 ---
 
@@ -96,7 +98,7 @@ CareerPilot/
 │       ├── App.jsx
 │       └── main.jsx
 ├── backend/           → FastAPI
-│   ├── agents/        → resume_tailor.py, cover_letter.py, interview_prep.py, skill_gap.py
+│   ├── agents/        → resume_tailor.py, cover_letter.py, interview_prep.py, skill_gap.py, ats_scorer.py
 │   ├── graph/         → langgraph_pipeline.py  (parallel fan-out)
 │   ├── routes/        → upload.py, analyze.py, history.py, resumes.py
 │   ├── utils/         → pdf_parser.py, pdf_generator.py, supabase_client.py, deps.py
@@ -218,10 +220,11 @@ Frontend will run at `http://localhost:5173`
 - **✉️ Cover Letter** — Creates a professional 3-paragraph cover letter tailored to the role
 - **🎤 How to Speak** — Provides scripts for self-introductions, project explanations, and interview answers
 - **📊 Skill Gaps** — Identifies missing skills and suggests free learning resources
+- **🎯 ATS Score** — Calculates an overall match score (0-100) with keyword, skills, experience, and education breakdown
 - **📥 PDF Export** — Download a full report with all AI-generated content
 - **📜 History** — All past analyses saved and accessible anytime
 - **🔐 Secure Auth** — User authentication via Supabase with JWT tokens
-- **⚡ Parallel Execution** — 4 AI agents run simultaneously for fast results
+- **⚡ Parallel Execution** — 5 AI agents run simultaneously for fast results
 - **📱 Responsive Design** — Optimized for mobile, tablet, laptop, and TV screens
 - **🔑 Google Sign-In** — One-click authentication with Google OAuth
 - **💾 Saved Resumes** — Store up to 2 resumes for quick reuse across job applications
