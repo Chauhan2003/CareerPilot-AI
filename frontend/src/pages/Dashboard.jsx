@@ -87,15 +87,15 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 py-10">
+      <main className="max-w-3xl 2xl:max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 2xl:py-14">
         <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-2xl font-bold text-slate-900">Analyze Your Application</h1>
-          <p className="text-slate-500 mt-1 text-sm">Upload your resume and paste the job description. We'll tell you what to improve.</p>
+          <h1 className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-slate-900">Analyze Your Application</h1>
+          <p className="text-slate-500 mt-1 text-sm 2xl:text-base">Upload your resume and paste the job description. We'll tell you what to improve.</p>
         </motion.div>
 
         {error && (
@@ -112,7 +112,7 @@ export default function Dashboard() {
         <div className="space-y-6">
           {/* Resume Upload */}
           <motion.div
-            className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+            className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.5 }}
@@ -123,7 +123,7 @@ export default function Dashboard() {
             </h2>
             <div
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+              className={`border-2 border-dashed rounded-xl p-5 sm:p-8 text-center cursor-pointer transition-colors ${
                 resumeFile ? 'border-blue-400 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-blue-50'
               }`}
             >
@@ -162,7 +162,7 @@ export default function Dashboard() {
 
           {/* Job Details */}
           <motion.div
-            className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+            className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
@@ -199,7 +199,7 @@ export default function Dashboard() {
           <motion.button
             onClick={handleAnalyze}
             disabled={analyzing || !uploadDone || !jobDescription.trim()}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3.5 text-base flex items-center justify-center gap-2 transition-colors shadow-sm"
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3 sm:py-3.5 text-sm sm:text-base flex items-center justify-center gap-2 transition-colors shadow-sm"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -210,7 +210,7 @@ export default function Dashboard() {
           {/* Agent Progress */}
           {analyzing && agentStatus.length > 0 && (
             <motion.div
-              className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+              className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}

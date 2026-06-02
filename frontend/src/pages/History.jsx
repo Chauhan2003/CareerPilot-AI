@@ -47,24 +47,41 @@ export default function History() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 py-10">
+      <main className="max-w-3xl 2xl:max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 2xl:py-14">
         <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-2xl font-bold text-slate-900">Analysis History</h1>
-          <p className="text-slate-500 mt-1 text-sm">All your previous job application analyses.</p>
+          <h1 className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-slate-900">Analysis History</h1>
+          <p className="text-slate-500 mt-1 text-sm 2xl:text-base">All your previous job application analyses.</p>
         </motion.div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-xl border border-slate-200 px-4 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 sm:justify-between shadow-sm"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 bg-slate-100 rounded-lg animate-pulse flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="h-4 bg-slate-100 rounded animate-pulse w-3/4 mb-2" />
+                    <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+                  <div className="h-7 w-16 bg-slate-100 rounded-lg animate-pulse" />
+                  <div className="h-7 w-16 bg-slate-100 rounded-lg animate-pulse" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : analyses.length === 0 ? (
           <motion.div
-            className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm"
+            className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-sm"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -83,18 +100,18 @@ export default function History() {
             {analyses.map((analysis, index) => (
               <motion.div
                 key={analysis.id}
-                className="bg-white rounded-xl border border-slate-200 px-5 py-4 flex items-center justify-between shadow-sm hover:border-blue-300 transition-colors"
+                className="bg-white rounded-xl border border-slate-200 px-4 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 sm:justify-between shadow-sm hover:border-blue-300 transition-colors"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.4 }}
                 whileHover={{ scale: 1.02, y: -2 }}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Briefcase className="w-4 h-4 text-blue-500" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">
                       {analysis.job_title || 'Untitled Job'}
                     </p>
                     <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
@@ -106,7 +123,7 @@ export default function History() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                   <motion.button
                     onClick={() => handleView(analysis.id)}
                     className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 border border-blue-200 rounded-lg px-3 py-1.5 transition-colors"

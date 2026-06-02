@@ -174,10 +174,10 @@ export default function Results() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 py-10">
+      <main className="max-w-4xl 2xl:max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 2xl:py-14">
         {/* Header */}
         <motion.div
-          className="flex items-center justify-between mb-8 flex-wrap gap-4"
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-3 sm:gap-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -189,13 +189,13 @@ export default function Results() {
             >
               <ArrowLeft className="w-4 h-4" /> New Analysis
             </button>
-            <h1 className="text-2xl font-bold text-slate-900">{jobTitle || 'Analysis Results'}</h1>
-            <p className="text-slate-500 text-sm mt-1">Here's what to improve and how to prepare</p>
+            <h1 className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-slate-900">{jobTitle || 'Analysis Results'}</h1>
+            <p className="text-slate-500 text-sm 2xl:text-base mt-1">Here's what to improve and how to prepare</p>
           </div>
           <motion.button
             onClick={handleDownload}
             disabled={downloading}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-xl px-4 py-2.5 transition-colors"
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-xl px-4 py-2.5 transition-colors w-full sm:w-auto"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -205,14 +205,14 @@ export default function Results() {
         </motion.div>
 
         {/* Tab Nav */}
-        <div className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 mb-6 shadow-sm overflow-x-auto">
+        <div className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 mb-5 sm:mb-6 shadow-sm overflow-x-auto">
           {TABS.map((tab) => {
             const Icon = tab.icon
             return (
               <motion.button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex-1 justify-center ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all flex-1 justify-center ${
                   activeTab === tab.key
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -220,8 +220,8 @@ export default function Results() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Icon className={`w-4 h-4 ${activeTab === tab.key ? 'text-white' : tab.color}`} />
-                {tab.label}
+                <Icon className={`w-4 h-4 flex-shrink-0 ${activeTab === tab.key ? 'text-white' : tab.color}`} />
+                <span>{tab.label}</span>
               </motion.button>
             )
           })}
@@ -234,7 +234,7 @@ export default function Results() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100">
             <h2 className="font-semibold text-slate-800">
               {TABS.find((t) => t.key === activeTab)?.label}
             </h2>
@@ -243,7 +243,7 @@ export default function Results() {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              className="px-6 py-5"
+              className="px-4 sm:px-6 py-4 sm:py-5"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
