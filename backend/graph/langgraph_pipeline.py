@@ -9,7 +9,7 @@ from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from agents.resume_tailor import run_resume_tailor
 from agents.cover_letter import run_cover_letter
-from agents.interview_prep import run_interview_prep
+from agents.interview_prep import run_how_to_speak
 from agents.skill_gap import run_skill_gap
 
 
@@ -29,10 +29,10 @@ async def _run_agents_node(state: PipelineState) -> PipelineState:
     jd_text = state["jd_text"]
     job_title = state["job_title"]
 
-    resume_result, cover_result, interview_result, skill_result = await asyncio.gather(
+    resume_result, cover_result, how_to_speak_result, skill_result = await asyncio.gather(
         run_resume_tailor(resume_text, jd_text, job_title),
         run_cover_letter(resume_text, jd_text, job_title),
-        run_interview_prep(resume_text, jd_text, job_title),
+        run_how_to_speak(resume_text, jd_text, job_title),
         run_skill_gap(resume_text, jd_text, job_title),
     )
 
@@ -40,7 +40,7 @@ async def _run_agents_node(state: PipelineState) -> PipelineState:
         **state,
         "resume_tailor": resume_result,
         "cover_letter": cover_result,
-        "interview_prep": interview_result,
+        "interview_prep": how_to_speak_result,
         "skill_gap": skill_result,
     }
 

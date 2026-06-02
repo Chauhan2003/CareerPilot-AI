@@ -60,9 +60,9 @@ def generate_cover_letter_pdf(cover_letter: str) -> bytes:
 
 def generate_full_report_pdf(results: dict) -> bytes:
     sections = [
-        {"heading": "Tailored Resume Bullet Points", "body": results.get("resume_tailor", "")},
+        {"heading": "Resume Fix", "body": results.get("resume_tailor", "")},
         {"heading": "Cover Letter", "body": results.get("cover_letter", "")},
-        {"heading": "Interview Preparation Q&A", "body": results.get("interview_prep", "")},
-        {"heading": "Skill Gap Analysis", "body": results.get("skill_gap", "")},
+        {"heading": "How to Speak", "body": results.get("interview_prep", "")},
+        {"heading": "Skill Gaps", "body": results.get("skill_gap", "")},
     ]
     return _build_pdf("CareerPilot — Full Analysis Report", sections)

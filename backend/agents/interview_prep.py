@@ -35,7 +35,7 @@ ANSWER: [Script based on resume and job description]
 Use simple, everyday language. Sound human and confident."""
 
 
-async def run_interview_prep(resume_text: str, jd_text: str, job_title: str) -> str:
+async def run_how_to_speak(resume_text: str, jd_text: str, job_title: str) -> str:
     messages = [
         ("system", SYSTEM_PROMPT),
         (
