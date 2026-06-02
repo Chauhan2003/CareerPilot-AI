@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+*.pyo
+
+# Environment variables
+.env
+frontend/.env
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
