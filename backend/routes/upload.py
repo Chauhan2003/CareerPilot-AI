@@ -1,20 +1,9 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from utils.pdf_parser import extract_text_from_pdf
 from utils.supabase_client import supabase
+from utils.deps import get_user_id
 
 router = APIRouter()
-bearer = HTTPBearer()
-
-
-def get_user_id(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> str:
-    """Validate Supabase JWT and return the user's ID."""
-    token = credentials.credentials
-    try:
-        user = supabase.auth.get_user(token)
-        return user.user.id
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
 @router.post("/resume")

@@ -1,27 +1,25 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import Response
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from utils.supabase_client import supabase
 from utils.pdf_generator import generate_full_report_pdf
+from utils.deps import get_user_id
 from graph.langgraph_pipeline import run_pipeline
 
 router = APIRouter()
-bearer = HTTPBearer()
-
-
-def get_user_id(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> str:
-    token = credentials.credentials
-    try:
-        user = supabase.auth.get_user(token)
-        return user.user.id
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
 class AnalyzeRequest(BaseModel):
     resume_text: str
     job_description: str
+    job_title: str = ""
+
+
+class DownloadReportRequest(BaseModel):
+    resume_tailor: str = ""
+    cover_letter: str = ""
+    interview_prep: str = ""
+    skill_gap: str = ""
     job_title: str = ""
 
 
@@ -52,12 +50,13 @@ async def analyze(payload: AnalyzeRequest, user_id: str = Depends(get_user_id)):
 
 
 @router.post("/download-report")
-async def download_report(payload: AnalyzeRequest, user_id: str = Depends(get_user_id)):
-    results = await run_pipeline(
-        resume_text=payload.resume_text,
-        jd_text=payload.job_description,
-        job_title=payload.job_title,
-    )
+async def download_report(payload: DownloadReportRequest, user_id: str = Depends(get_user_id)):
+    results = {
+        "resume_tailor": payload.resume_tailor,
+        "cover_letter": payload.cover_letter,
+        "interview_prep": payload.interview_prep,
+        "skill_gap": payload.skill_gap,
+    }
     pdf_bytes = generate_full_report_pdf(results)
     return Response(
         content=pdf_bytes,

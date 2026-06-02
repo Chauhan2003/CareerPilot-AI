@@ -74,7 +74,7 @@ export default function Dashboard() {
     try {
       const { data } = await analyzeApplication({ resume_text: resumeText, job_description: jobDescription, job_title: jobTitle })
       clearInterval(ticker)
-      navigate('/results', { state: { results: data, jobTitle } })
+      navigate('/results', { state: { results: data, jobTitle, resumeText, jobDescription } })
     } catch (err) {
       clearInterval(ticker)
       setError(err.response?.data?.detail || 'Analysis failed. Check your API keys and try again.')

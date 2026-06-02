@@ -151,8 +151,10 @@ export default function Results() {
     setDownloading(true)
     try {
       const { data } = await downloadReport({
-        resume_text: state.resumeText || '',
-        job_description: state.jobDescription || '',
+        resume_tailor: results.resume_tailor || '',
+        cover_letter: results.cover_letter || '',
+        interview_prep: results.interview_prep || '',
+        skill_gap: results.skill_gap || '',
         job_title: jobTitle,
       })
       const url = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }))
