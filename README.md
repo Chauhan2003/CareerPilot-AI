@@ -98,7 +98,7 @@ CareerPilot/
 ├── backend/           → FastAPI
 │   ├── agents/        → resume_tailor.py, cover_letter.py, interview_prep.py, skill_gap.py
 │   ├── graph/         → langgraph_pipeline.py  (parallel fan-out)
-│   ├── routes/        → upload.py, analyze.py, history.py
+│   ├── routes/        → upload.py, analyze.py, history.py, resumes.py
 │   ├── utils/         → pdf_parser.py, pdf_generator.py, supabase_client.py, deps.py
 │   ├── config.py
 │   ├── main.py
@@ -123,7 +123,24 @@ CareerPilot/
 1. Create a new project at [supabase.com](https://supabase.com)
 2. Go to **SQL Editor** and run the contents of `supabase/schema.sql`
 3. Go to **Storage** → Create a new bucket named `resumes` (set to **private**)
-4. From your Supabase project settings, copy:
+4. For the saved resumes feature, also run this SQL in the SQL Editor:
+   ```sql
+   CREATE TABLE saved_resumes (
+     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+     user_id text NOT NULL,
+     name text NOT NULL,
+     resume_text text NOT NULL,
+     storage_path text,
+     created_at timestamptz DEFAULT now()
+   );
+
+   ALTER TABLE saved_resumes ENABLE ROW LEVEL SECURITY;
+
+   CREATE POLICY "Users manage own resumes"
+     ON saved_resumes FOR ALL
+     USING (auth.uid()::text = user_id);
+   ```
+5. From your Supabase project settings, copy:
    - **Project URL**
    - **anon key** (public key)
    - **service role key** (secret key for backend)
@@ -205,6 +222,10 @@ Frontend will run at `http://localhost:5173`
 - **📜 History** — All past analyses saved and accessible anytime
 - **🔐 Secure Auth** — User authentication via Supabase with JWT tokens
 - **⚡ Parallel Execution** — 4 AI agents run simultaneously for fast results
+- **📱 Responsive Design** — Optimized for mobile, tablet, laptop, and TV screens
+- **🔑 Google Sign-In** — One-click authentication with Google OAuth
+- **💾 Saved Resumes** — Store up to 2 resumes for quick reuse across job applications
+- **👤 Profile Management** — Display user name in profile dropdown with click-outside close
 
 ---
 
