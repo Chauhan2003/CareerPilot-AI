@@ -6,6 +6,7 @@ import os
 from routes.upload import router as upload_router
 from routes.analyze import router as analyze_router
 from routes.history import router as history_router
+from routes.resumes import router as resumes_router
 
 load_dotenv()
 
@@ -22,6 +23,7 @@ app.add_middleware(
 app.include_router(upload_router, prefix="/api/upload", tags=["upload"])
 app.include_router(analyze_router, prefix="/api/analyze", tags=["analyze"])
 app.include_router(history_router, prefix="/api/history", tags=["history"])
+app.include_router(resumes_router, prefix="/api/resumes", tags=["resumes"])
 
 
 @app.get("/health")

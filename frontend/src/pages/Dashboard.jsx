@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload, FileText, Briefcase, Loader2, CheckCircle, X } from 'lucide-react'
-import { uploadResume, analyzeApplication } from '../lib/api'
+import { Upload, FileText, Briefcase, Loader2, CheckCircle, X, BookMarked, Trash2, Plus } from 'lucide-react'
+import { uploadResume, analyzeApplication, getSavedResumes, saveResume, deleteSavedResume, getSavedResume } from '../lib/api'
 import Navbar from '../components/Navbar'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -18,6 +18,19 @@ export default function Dashboard() {
   const [uploadDone, setUploadDone] = useState(false)
   const [error, setError] = useState('')
   const [agentStatus, setAgentStatus] = useState([])
+
+  const [savedResumes, setSavedResumes] = useState([])
+  const [selectedSavedId, setSelectedSavedId] = useState(null)
+  const [savingResume, setSavingResume] = useState(false)
+  const [resumeName, setResumeName] = useState('')
+  const [showSaveInput, setShowSaveInput] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
+
+  useEffect(() => {
+    getSavedResumes()
+      .then(({ data }) => setSavedResumes(data.resumes || []))
+      .catch(() => {})
+  }, [])
 
   const AGENTS = [
     'Resume Fix',
@@ -52,6 +65,51 @@ export default function Dashboard() {
     } finally {
       setUploading(false)
     }
+  }
+
+  const handleSelectSaved = async (id) => {
+    setSelectedSavedId(id)
+    setResumeFile(null)
+    setUploadDone(false)
+    setError('')
+    try {
+      const { data } = await getSavedResume(id)
+      setResumeText(data.resume.resume_text)
+      setUploadDone(true)
+    } catch {
+      setError('Failed to load saved resume.')
+      setSelectedSavedId(null)
+    }
+  }
+
+  const handleSaveResume = async () => {
+    if (!resumeText || !resumeName.trim()) return
+    setSavingResume(true)
+    try {
+      const { data } = await saveResume({ name: resumeName.trim(), resume_text: resumeText })
+      setSavedResumes((prev) => [data.resume, ...prev])
+      setShowSaveInput(false)
+      setResumeName('')
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to save resume.')
+    } finally {
+      setSavingResume(false)
+    }
+  }
+
+  const handleDeleteSaved = async (id, e) => {
+    e.stopPropagation()
+    setDeletingId(id)
+    try {
+      await deleteSavedResume(id)
+      setSavedResumes((prev) => prev.filter((r) => r.id !== id))
+      if (selectedSavedId === id) {
+        setSelectedSavedId(null)
+        setResumeText('')
+        setUploadDone(false)
+      }
+    } catch {}
+    setDeletingId(null)
   }
 
   const handleAnalyze = async () => {
@@ -110,53 +168,156 @@ export default function Dashboard() {
         )}
 
         <div className="space-y-6">
-          {/* Resume Upload */}
+          {/* Resume Section */}
           <motion.div
             className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.5 }}
-            whileHover={{ y: -2, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
           >
             <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <FileText className="w-5 h-5 text-blue-500" /> Resume (PDF)
             </h2>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-5 sm:p-8 text-center cursor-pointer transition-colors ${
-                resumeFile ? 'border-blue-400 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-blue-50'
-              }`}
-            >
-              {resumeFile ? (
-                <div className="flex items-center justify-center gap-3">
-                  {uploadDone
-                    ? <CheckCircle className="w-6 h-6 text-green-500" />
-                    : <FileText className="w-6 h-6 text-blue-500" />}
-                  <span className="text-sm font-medium text-slate-700">{resumeFile.name}</span>
+
+            {/* Saved Resumes */}
+            {savedResumes.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-medium text-slate-500 mb-2 flex items-center gap-1.5">
+                  <BookMarked className="w-3.5 h-3.5" /> Saved Resumes
+                </p>
+                <div className="space-y-2">
+                  {savedResumes.map((r) => (
+                    <div
+                      key={r.id}
+                      onClick={() => handleSelectSaved(r.id)}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-lg border cursor-pointer transition-colors ${
+                        selectedSavedId === r.id
+                          ? 'border-blue-400 bg-blue-50'
+                          : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {selectedSavedId === r.id
+                          ? <CheckCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                          : <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />}
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-slate-700 truncate">{r.name}</p>
+                          <p className="text-xs text-slate-400">{new Date(r.created_at).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => handleDeleteSaved(r.id, e)}
+                        disabled={deletingId === r.id}
+                        className="ml-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        {deletingId === r.id
+                          ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          : <Trash2 className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <>
-                  <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                  <p className="text-sm text-slate-500">Click to upload your resume PDF</p>
-                  <p className="text-xs text-slate-400 mt-1">Max 5 MB</p>
-                </>
-              )}
-            </div>
-            <input ref={fileInputRef} type="file" accept=".pdf" className="hidden" onChange={handleFileChange} />
-            {resumeFile && !uploadDone && (
-              <button
-                onClick={handleUpload}
-                disabled={uploading}
-                className="mt-3 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors"
-              >
-                {uploading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {uploading ? 'Reading PDF…' : 'Upload Resume'}
-              </button>
+                {savedResumes.length < 2 && (
+                  <div className="flex items-center gap-2 mt-3">
+                    <div className="flex-1 h-px bg-slate-100" />
+                    <span className="text-xs text-slate-400">or upload new</span>
+                    <div className="flex-1 h-px bg-slate-100" />
+                  </div>
+                )}
+              </div>
             )}
+
+            {/* Upload New (hidden if at max saved) */}
+            {!(savedResumes.length >= 2 && !selectedSavedId) && (
+              <>
+                {savedResumes.length < 2 && (
+                  <>
+                    <div
+                      onClick={() => { fileInputRef.current?.click(); setSelectedSavedId(null) }}
+                      className={`border-2 border-dashed rounded-xl p-5 sm:p-8 text-center cursor-pointer transition-colors ${
+                        resumeFile && !selectedSavedId ? 'border-blue-400 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-blue-50'
+                      }`}
+                    >
+                      {resumeFile && !selectedSavedId ? (
+                        <div className="flex items-center justify-center gap-3">
+                          {uploadDone
+                            ? <CheckCircle className="w-6 h-6 text-green-500" />
+                            : <FileText className="w-6 h-6 text-blue-500" />}
+                          <span className="text-sm font-medium text-slate-700">{resumeFile.name}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                          <p className="text-sm text-slate-500">Click to upload your resume PDF</p>
+                          <p className="text-xs text-slate-400 mt-1">Max 5 MB</p>
+                        </>
+                      )}
+                    </div>
+                    <input ref={fileInputRef} type="file" accept=".pdf" className="hidden" onChange={handleFileChange} />
+                    {resumeFile && !selectedSavedId && !uploadDone && (
+                      <button
+                        onClick={handleUpload}
+                        disabled={uploading}
+                        className="mt-3 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors"
+                      >
+                        {uploading && <Loader2 className="w-4 h-4 animate-spin" />}
+                        {uploading ? 'Reading PDF…' : 'Upload Resume'}
+                      </button>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+
+            {/* Status + Save option */}
             {uploadDone && (
-              <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
-                <CheckCircle className="w-3.5 h-3.5" /> Resume parsed successfully
-              </p>
+              <div className="mt-3 space-y-2">
+                <p className="text-xs text-green-600 flex items-center gap-1">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  {selectedSavedId ? 'Saved resume loaded' : 'Resume parsed successfully'}
+                </p>
+                {!selectedSavedId && savedResumes.length < 2 && (
+                  <AnimatePresence>
+                    {!showSaveInput ? (
+                      <button
+                        onClick={() => setShowSaveInput(true)}
+                        className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Save this resume for later
+                      </button>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="flex gap-2"
+                      >
+                        <input
+                          type="text"
+                          value={resumeName}
+                          onChange={(e) => setResumeName(e.target.value)}
+                          placeholder="Resume name (e.g. Software Engineer CV)"
+                          className="flex-1 border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onKeyDown={(e) => e.key === 'Enter' && handleSaveResume()}
+                        />
+                        <button
+                          onClick={handleSaveResume}
+                          disabled={savingResume || !resumeName.trim()}
+                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                        >
+                          {savingResume ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save'}
+                        </button>
+                        <button
+                          onClick={() => { setShowSaveInput(false); setResumeName('') }}
+                          className="text-slate-400 hover:text-slate-600 px-2"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                )}
+              </div>
             )}
           </motion.div>
 

@@ -32,3 +32,11 @@ export const getHistory = () => api.get('/api/history/')
 export const getAnalysis = (id) => api.get(`/api/history/${id}`)
 
 export const deleteAnalysis = (id) => api.delete(`/api/history/${id}`)
+
+export const getSavedResumes = () => api.get('/api/resumes/')
+
+export const saveResume = (payload) => api.post('/api/resumes/', payload)
+
+export const getSavedResume = (id) => api.get(`/api/resumes/${id}`)
+
+export const deleteSavedResume = (id) => api.delete(`/api/resumes/${id}`)
