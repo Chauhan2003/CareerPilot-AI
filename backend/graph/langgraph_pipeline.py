@@ -11,6 +11,7 @@ from agents.resume_tailor import run_resume_tailor
 from agents.cover_letter import run_cover_letter
 from agents.interview_prep import run_how_to_speak
 from agents.skill_gap import run_skill_gap
+from agents.ats_scorer import run_ats_scorer
 
 
 class PipelineState(TypedDict):
@@ -21,6 +22,7 @@ class PipelineState(TypedDict):
     cover_letter: str
     interview_prep: str
     skill_gap: str
+    ats_score: dict
 
 
 async def _run_agents_node(state: PipelineState) -> PipelineState:
@@ -29,11 +31,12 @@ async def _run_agents_node(state: PipelineState) -> PipelineState:
     jd_text = state["jd_text"]
     job_title = state["job_title"]
 
-    resume_result, cover_result, how_to_speak_result, skill_result = await asyncio.gather(
+    resume_result, cover_result, how_to_speak_result, skill_result, ats_result = await asyncio.gather(
         run_resume_tailor(resume_text, jd_text, job_title),
         run_cover_letter(resume_text, jd_text, job_title),
         run_how_to_speak(resume_text, jd_text, job_title),
         run_skill_gap(resume_text, jd_text, job_title),
+        run_ats_scorer(resume_text, jd_text, job_title),
     )
 
     return {
@@ -42,6 +45,7 @@ async def _run_agents_node(state: PipelineState) -> PipelineState:
         "cover_letter": cover_result,
         "interview_prep": how_to_speak_result,
         "skill_gap": skill_result,
+        "ats_score": ats_result,
     }
 
 
@@ -65,6 +69,7 @@ async def run_pipeline(resume_text: str, jd_text: str, job_title: str = "") -> d
         "cover_letter": "",
         "interview_prep": "",
         "skill_gap": "",
+        "ats_score": {},
     }
     result = await _compiled_graph.ainvoke(initial_state)
     return {
@@ -72,4 +77,5 @@ async def run_pipeline(resume_text: str, jd_text: str, job_title: str = "") -> d
         "cover_letter": result["cover_letter"],
         "interview_prep": result["interview_prep"],
         "skill_gap": result["skill_gap"],
+        "ats_score": result["ats_score"],
     }

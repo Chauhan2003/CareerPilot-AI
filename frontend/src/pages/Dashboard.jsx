@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload, FileText, Briefcase, Loader2, CheckCircle, X, BookMarked, Trash2, Plus } from 'lucide-react'
-import { uploadResume, analyzeApplication, getSavedResumes, saveResume, deleteSavedResume, getSavedResume } from '../lib/api'
+import { Upload, FileText, Briefcase, Loader2, CheckCircle, X, BookMarked, Trash2, Plus, Zap, Lock } from 'lucide-react'
+import { uploadResume, analyzeApplication, getSavedResumes, saveResume, deleteSavedResume, getSavedResume, getAnalysisCount } from '../lib/api'
 import Navbar from '../components/Navbar'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -25,10 +25,15 @@ export default function Dashboard() {
   const [resumeName, setResumeName] = useState('')
   const [showSaveInput, setShowSaveInput] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
+  const [usage, setUsage] = useState({ count: 0, limit: 5, remaining: 5 })
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   useEffect(() => {
     getSavedResumes()
       .then(({ data }) => setSavedResumes(data.resumes || []))
+      .catch(() => {})
+    getAnalysisCount()
+      .then(({ data }) => setUsage(data))
       .catch(() => {})
   }, [])
 
@@ -37,6 +42,7 @@ export default function Dashboard() {
     'Cover Letter',
     'How to Speak',
     'Skill Gaps',
+    'ATS Score',
   ]
 
   const handleFileChange = (e) => {
@@ -132,10 +138,15 @@ export default function Dashboard() {
     try {
       const { data } = await analyzeApplication({ resume_text: resumeText, job_description: jobDescription, job_title: jobTitle })
       clearInterval(ticker)
+      setUsage((prev) => ({ ...prev, count: prev.count + 1, remaining: Math.max(0, prev.remaining - 1) }))
       navigate('/results', { state: { results: data, jobTitle, resumeText, jobDescription } })
     } catch (err) {
       clearInterval(ticker)
-      setError(err.response?.data?.detail || 'Analysis failed. Check your API keys and try again.')
+      if (err.response?.status === 403) {
+        setShowUpgradeModal(true)
+      } else {
+        setError(err.response?.data?.detail || 'Analysis failed. Check your API keys and try again.')
+      }
     } finally {
       setAnalyzing(false)
       setAgentStatus([])
@@ -154,7 +165,77 @@ export default function Dashboard() {
         >
           <h1 className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-slate-900">Analyze Your Application</h1>
           <p className="text-slate-500 mt-1 text-sm 2xl:text-base">Upload your resume and paste the job description. We'll tell you what to improve.</p>
+          {/* Usage bar */}
+          <div className="mt-3 flex items-center gap-3">
+            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden max-w-xs">
+              <motion.div
+                className={`h-full rounded-full ${usage.remaining === 0 ? 'bg-red-500' : usage.remaining === 1 ? 'bg-yellow-500' : 'bg-blue-500'}`}
+                initial={{ width: 0 }}
+                animate={{ width: `${(usage.count / usage.limit) * 100}%` }}
+                transition={{ duration: 0.6 }}
+              />
+            </div>
+            <span className={`text-xs font-medium ${usage.remaining === 0 ? 'text-red-600' : 'text-slate-500'}`}>
+              {usage.count}/{usage.limit} analyses used
+            </span>
+            {usage.remaining === 0 && (
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <Zap className="w-3 h-3" /> Upgrade
+              </button>
+            )}
+          </div>
         </motion.div>
+
+        {/* Upgrade Modal */}
+        <AnimatePresence>
+          {showUpgradeModal && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+                onClick={() => setShowUpgradeModal(false)}
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+              >
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 pointer-events-auto">
+                  <div className="text-center mb-5">
+                    <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Zap className="w-7 h-7 text-blue-600" />
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-900 mb-2">You've reached the free limit</h2>
+                    <p className="text-slate-500 text-sm">You've used all {usage.limit} free analyses. Upgrade to Pro for unlimited analyses.</p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-4 mb-5 space-y-2">
+                    {['Unlimited analyses', 'Priority AI processing', 'Advanced ATS insights', 'Export to multiple formats'].map((f) => (
+                      <div key={f} className="flex items-center gap-2 text-sm text-slate-700">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" /> {f}
+                      </div>
+                    ))}
+                  </div>
+                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-3 flex items-center justify-center gap-2 transition-colors mb-3">
+                    <Zap className="w-4 h-4" /> Upgrade to Pro
+                  </button>
+                  <button
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="w-full text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    Maybe later
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {error && (
           <motion.div
@@ -357,16 +438,27 @@ export default function Dashboard() {
           </motion.div>
 
           {/* Analyze Button */}
-          <motion.button
-            onClick={handleAnalyze}
-            disabled={analyzing || !uploadDone || !jobDescription.trim()}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3 sm:py-3.5 text-sm sm:text-base flex items-center justify-center gap-2 transition-colors shadow-sm"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {analyzing ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-            {analyzing ? 'Analyzing…' : 'Analyze My Application'}
-          </motion.button>
+          {usage.remaining === 0 ? (
+            <motion.button
+              onClick={() => setShowUpgradeModal(true)}
+              className="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl py-3 sm:py-3.5 text-sm sm:text-base flex items-center justify-center gap-2 transition-colors shadow-sm"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Lock className="w-5 h-5" /> Upgrade to Analyze More
+            </motion.button>
+          ) : (
+            <motion.button
+              onClick={handleAnalyze}
+              disabled={analyzing || !uploadDone || !jobDescription.trim()}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3 sm:py-3.5 text-sm sm:text-base flex items-center justify-center gap-2 transition-colors shadow-sm"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {analyzing ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+              {analyzing ? 'Analyzing…' : `Analyze My Application${usage.remaining <= 2 ? ` (${usage.remaining} left)` : ''}`}
+            </motion.button>
+          )}
 
           {/* Agent Progress */}
           {analyzing && agentStatus.length > 0 && (

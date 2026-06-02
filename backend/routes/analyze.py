@@ -23,12 +23,24 @@ class DownloadReportRequest(BaseModel):
     job_title: str = ""
 
 
+FREE_TIER_LIMIT = 5
+
+
 @router.post("/")
 async def analyze(payload: AnalyzeRequest, user_id: str = Depends(get_user_id)):
     if not payload.resume_text.strip():
         raise HTTPException(status_code=400, detail="resume_text is required")
     if not payload.job_description.strip():
         raise HTTPException(status_code=400, detail="job_description is required")
+
+    usage_result = supabase.table("user_usage").select("total_analyses").eq("user_id", user_id).execute()
+    total = usage_result.data[0]["total_analyses"] if usage_result.data else 0
+
+    if total >= FREE_TIER_LIMIT:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Free tier limit reached ({FREE_TIER_LIMIT} analyses). Upgrade to continue.",
+        )
 
     results = await run_pipeline(
         resume_text=payload.resume_text,
@@ -43,8 +55,15 @@ async def analyze(payload: AnalyzeRequest, user_id: str = Depends(get_user_id)):
         "cover_letter": results.get("cover_letter"),
         "interview_prep": results.get("interview_prep"),
         "skill_gap": results.get("skill_gap"),
+        "ats_score": results.get("ats_score"),
     }
     supabase.table("analyses").insert(record).execute()
+
+    # Increment lifetime counter regardless of future deletions
+    supabase.table("user_usage").upsert(
+        {"user_id": user_id, "total_analyses": total + 1},
+        on_conflict="user_id",
+    ).execute()
 
     return results
 

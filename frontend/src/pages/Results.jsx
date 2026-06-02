@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { FileText, Mail, MessageSquare, TrendingUp, Download, ArrowLeft, Copy, Check } from 'lucide-react'
+import { FileText, Mail, MessageSquare, TrendingUp, Download, ArrowLeft, Copy, Check, ShieldCheck, XCircle } from 'lucide-react'
 import { downloadReport } from '../lib/api'
 import Navbar from '../components/Navbar'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -125,6 +125,129 @@ function FormattedContent({ text }) {
   return <div>{elements}</div>
 }
 
+function ATSScoreCard({ ats }) {
+  if (!ats || typeof ats.overall_score === 'undefined') return null
+
+  const score = ats.overall_score
+  const color = score >= 75 ? 'text-green-600' : score >= 50 ? 'text-yellow-600' : 'text-red-500'
+  const bg = score >= 75 ? 'bg-green-50 border-green-200' : score >= 50 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
+  const ring = score >= 75 ? 'stroke-green-500' : score >= 50 ? 'stroke-yellow-500' : 'stroke-red-500'
+  const label = score >= 75 ? 'Great Match' : score >= 50 ? 'Moderate Match' : 'Low Match'
+
+  const circumference = 2 * Math.PI * 36
+  const dashOffset = circumference - (score / 100) * circumference
+
+  const breakdown = ats.breakdown || {}
+  const breakdownItems = [
+    { label: 'Keywords', value: breakdown.keyword_match ?? 0 },
+    { label: 'Skills', value: breakdown.skills_match ?? 0 },
+    { label: 'Experience', value: breakdown.experience_match ?? 0 },
+    { label: 'Education', value: breakdown.education_match ?? 0 },
+  ]
+
+  return (
+    <motion.div
+      className={`rounded-2xl border p-4 sm:p-6 mb-5 sm:mb-6 ${bg}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
+        {/* Score circle */}
+        <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
+          <div className="relative w-24 h-24">
+            <svg className="w-24 h-24 -rotate-90" viewBox="0 0 88 88">
+              <circle cx="44" cy="44" r="36" fill="none" stroke="#e2e8f0" strokeWidth="8" />
+              <circle
+                cx="44" cy="44" r="36" fill="none" strokeWidth="8"
+                className={ring}
+                strokeDasharray={circumference}
+                strokeDashoffset={dashOffset}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dashoffset 1s ease' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className={`text-2xl font-bold ${color}`}>{score}</span>
+              <span className="text-xs text-slate-500">/ 100</span>
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <ShieldCheck className={`w-4 h-4 ${color}`} />
+              <span className={`text-sm font-semibold ${color}`}>{label}</span>
+            </div>
+            <p className="text-xs text-slate-500">ATS Compatibility Score</p>
+          </div>
+        </div>
+
+        {/* Breakdown bars */}
+        <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-3">
+          {breakdownItems.map((item) => (
+            <div key={item.label}>
+              <div className="flex justify-between mb-1">
+                <span className="text-xs font-medium text-slate-600">{item.label}</span>
+                <span className="text-xs font-semibold text-slate-800">{item.value}%</span>
+              </div>
+              <div className="h-1.5 bg-white/60 rounded-full overflow-hidden border border-white">
+                <motion.div
+                  className={`h-full rounded-full ${
+                    item.value >= 75 ? 'bg-green-500' : item.value >= 50 ? 'bg-yellow-500' : 'bg-red-400'
+                  }`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${item.value}%` }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Keywords */}
+      {(ats.matched_keywords?.length > 0 || ats.missing_keywords?.length > 0) && (
+        <div className="mt-4 pt-4 border-t border-white/60 grid sm:grid-cols-2 gap-4">
+          {ats.matched_keywords?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-slate-600 mb-2">✅ Matched Keywords</p>
+              <div className="flex flex-wrap gap-1.5">
+                {ats.matched_keywords.map((kw) => (
+                  <span key={kw} className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{kw}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {ats.missing_keywords?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-slate-600 mb-2">❌ Missing Keywords</p>
+              <div className="flex flex-wrap gap-1.5">
+                {ats.missing_keywords.map((kw) => (
+                  <span key={kw} className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">{kw}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Suggestions */}
+      {ats.suggestions?.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-white/60">
+          <p className="text-xs font-semibold text-slate-600 mb-2">💡 Quick Improvements</p>
+          <ul className="space-y-1.5">
+            {ats.suggestions.map((s, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                <span className="w-4 h-4 rounded-full bg-white/80 flex items-center justify-center text-slate-500 flex-shrink-0 mt-0.5 font-semibold">{i + 1}</span>
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
 export default function Results() {
   const { state } = useLocation()
   const navigate = useNavigate()
@@ -203,6 +326,9 @@ export default function Results() {
             {downloading ? 'Generating…' : 'Download Full Report'}
           </motion.button>
         </motion.div>
+
+        {/* ATS Score Card */}
+        <ATSScoreCard ats={results?.ats_score} />
 
         {/* Tab Nav */}
         <div className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 mb-5 sm:mb-6 shadow-sm overflow-x-auto">

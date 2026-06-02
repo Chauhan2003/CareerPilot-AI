@@ -27,6 +27,8 @@ export const analyzeApplication = (payload) =>
 export const downloadReport = (payload) =>
   api.post('/api/analyze/download-report', payload, { responseType: 'blob' })
 
+export const getAnalysisCount = () => api.get('/api/history/count')
+
 export const getHistory = () => api.get('/api/history/')
 
 export const getAnalysis = (id) => api.get(`/api/history/${id}`)

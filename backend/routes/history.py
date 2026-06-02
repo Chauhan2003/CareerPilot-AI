@@ -5,6 +5,16 @@ from utils.deps import get_user_id
 router = APIRouter()
 
 
+FREE_TIER_LIMIT = 5
+
+
+@router.get("/count")
+def get_analysis_count(user_id: str = Depends(get_user_id)):
+    result = supabase.table("user_usage").select("total_analyses").eq("user_id", user_id).execute()
+    total = result.data[0]["total_analyses"] if result.data else 0
+    return {"count": total, "limit": FREE_TIER_LIMIT, "remaining": max(0, FREE_TIER_LIMIT - total)}
+
+
 @router.get("/")
 def get_history(user_id: str = Depends(get_user_id)):
     response = (
