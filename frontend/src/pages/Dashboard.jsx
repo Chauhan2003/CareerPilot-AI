@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, Briefcase, Loader2, CheckCircle, X } from 'lucide-react'
 import { uploadResume, analyzeApplication } from '../lib/api'
 import Navbar from '../components/Navbar'
+import { motion } from 'framer-motion'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -19,10 +20,10 @@ export default function Dashboard() {
   const [agentStatus, setAgentStatus] = useState([])
 
   const AGENTS = [
-    'Resume Tailor',
-    'Cover Letter Writer',
-    'Interview Prep',
-    'Skill Gap Analyzer',
+    'Resume Fix',
+    'Cover Letter',
+    'How to Speak',
+    'Skill Gaps',
   ]
 
   const handleFileChange = (e) => {
@@ -87,20 +88,36 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-50">
       <Navbar />
       <main className="max-w-3xl mx-auto px-4 py-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">New Application Analysis</h1>
-          <p className="text-slate-500 mt-1 text-sm">Upload your resume and paste the job description to get AI-powered tailoring.</p>
-        </div>
+        <motion.div
+          className="mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-2xl font-bold text-slate-900">Analyze Your Application</h1>
+          <p className="text-slate-500 mt-1 text-sm">Upload your resume and paste the job description. We'll tell you what to improve.</p>
+        </motion.div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6 flex items-center gap-2">
+          <motion.div
+            className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6 flex items-center gap-2"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             <X className="w-4 h-4 flex-shrink-0" /> {error}
-          </div>
+          </motion.div>
         )}
 
         <div className="space-y-6">
           {/* Resume Upload */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <motion.div
+            className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            whileHover={{ y: -2, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+          >
             <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <FileText className="w-5 h-5 text-blue-500" /> Resume (PDF)
             </h2>
@@ -133,7 +150,7 @@ export default function Dashboard() {
                 className="mt-3 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors"
               >
                 {uploading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {uploading ? 'Parsing PDF…' : 'Upload & Parse Resume'}
+                {uploading ? 'Reading PDF…' : 'Upload Resume'}
               </button>
             )}
             {uploadDone && (
@@ -141,10 +158,16 @@ export default function Dashboard() {
                 <CheckCircle className="w-3.5 h-3.5" /> Resume parsed successfully
               </p>
             )}
-          </div>
+          </motion.div>
 
           {/* Job Details */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <motion.div
+            className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            whileHover={{ y: -2, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+          >
             <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <Briefcase className="w-5 h-5 text-blue-500" /> Job Details
             </h2>
@@ -170,35 +193,48 @@ export default function Dashboard() {
                 />
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Analyze Button */}
-          <button
+          <motion.button
             onClick={handleAnalyze}
             disabled={analyzing || !uploadDone || !jobDescription.trim()}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3.5 text-base flex items-center justify-center gap-2 transition-colors shadow-sm"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             {analyzing ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-            {analyzing ? 'Running AI Agents…' : 'Analyze My Application'}
-          </button>
+            {analyzing ? 'Analyzing…' : 'Analyze My Application'}
+          </motion.button>
 
           {/* Agent Progress */}
           {analyzing && agentStatus.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <p className="text-sm font-medium text-slate-700 mb-3">Agent Progress</p>
+            <motion.div
+              className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <p className="text-sm font-medium text-slate-700 mb-3">Working on it…</p>
               <div className="space-y-2">
                 {agentStatus.map((agent) => (
-                  <div key={agent.name} className="flex items-center gap-3">
+                  <motion.div
+                    key={agent.name}
+                    className="flex items-center gap-3"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     {agent.done
                       ? <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                       : <Loader2 className="w-4 h-4 text-blue-500 animate-spin flex-shrink-0" />}
                     <span className={`text-sm ${agent.done ? 'text-slate-500 line-through' : 'text-slate-800 font-medium'}`}>
                       {agent.name}
                     </span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </main>

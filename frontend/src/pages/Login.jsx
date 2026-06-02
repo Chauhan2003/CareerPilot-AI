@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Briefcase, Loader2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export default function Login() {
   const { signIn, signUp } = useAuth()
@@ -36,17 +37,73 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl mb-4 shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 px-4 relative overflow-hidden">
+      {/* Animated background blobs */}
+      <motion.div
+        className="absolute top-20 left-10 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+        animate={{
+          scale: [1, 1.2, 1],
+          x: [0, 30, 0],
+          y: [0, -30, 0],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      <motion.div
+        className="absolute bottom-20 right-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+        animate={{
+          scale: [1.2, 1, 1.2],
+          x: [0, -30, 0],
+          y: [0, 30, 0],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      
+      <div className="w-full max-w-md relative z-10">
+        <motion.div
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div
+            className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl mb-4 shadow-lg"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+          >
             <Briefcase className="w-7 h-7 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900">CareerPilot</h1>
-          <p className="text-slate-500 mt-1">AI-powered job application assistant</p>
-        </div>
+          </motion.div>
+          <motion.h1
+            className="text-3xl font-bold text-slate-900"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            CareerPilot
+          </motion.h1>
+          <motion.p
+            className="text-slate-500 mt-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            AI-powered job application assistant
+          </motion.p>
+        </motion.div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <motion.div
+          className="bg-white rounded-2xl shadow-xl p-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
           <h2 className="text-xl font-semibold text-slate-800 mb-6">
             {isSignUp ? 'Create your account' : 'Welcome back'}
           </h2>
@@ -105,7 +162,7 @@ export default function Login() {
               {isSignUp ? 'Sign in' : 'Sign up'}
             </button>
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   )

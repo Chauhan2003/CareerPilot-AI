@@ -1,15 +1,19 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Briefcase, LayoutDashboard, Clock, LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useState } from 'react'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [showDropdown, setShowDropdown] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
     navigate('/login')
+    setShowDropdown(false)
   }
 
   const isActive = (path) => location.pathname === path
@@ -24,31 +28,55 @@ export default function Navbar() {
           CareerPilot
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-6">
           <Link
             to="/dashboard"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              isActive('/dashboard') ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+              isActive('/dashboard') ? 'text-blue-600' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <LayoutDashboard className="w-4 h-4" /> Dashboard
           </Link>
           <Link
             to="/history"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              isActive('/history') ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+              isActive('/history') ? 'text-blue-600' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Clock className="w-4 h-4" /> History
           </Link>
-          <div className="w-px h-5 bg-slate-200 mx-1" />
-          <span className="text-xs text-slate-400 hidden sm:block mr-1">{user?.email}</span>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors"
-          >
-            <LogOut className="w-4 h-4" /> Sign out
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex items-center gap-2 transition-colors"
+            >
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                {user?.email?.[0]?.toUpperCase() || 'U'}
+              </div>
+            </button>
+
+            <AnimatePresence>
+              {showDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50"
+                >
+                  <div className="px-4 py-2 border-b border-slate-100">
+                    <p className="text-sm font-medium text-slate-900 truncate">{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" /> Sign out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </nav>
