@@ -1,6 +1,6 @@
 # CareerPilot 🚀
 
-> AI-powered job application assistant — upload your resume and a job description, and get a tailored resume, cover letter, interview prep questions, and skill gap analysis in seconds.
+> AI-powered job application assistant — upload your resume and a job description, and get resume fixes, cover letters, interview speaking scripts, and skill gap analysis in seconds.
 
 ![Tech Stack](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
@@ -15,10 +15,10 @@
 
 CareerPilot helps job seekers optimize their applications using AI. Simply upload your resume (PDF) and paste a job description — the system runs 4 specialized AI agents in parallel to:
 
-1. **Tailor Your Resume** — rewrites bullet points to match job description keywords
-2. **Write a Cover Letter** — generates a professional 3-paragraph cover letter
-3. **Prepare for Interviews** — creates 10 role-specific Q&A pairs (behavioral + technical)
-4. **Analyze Skill Gaps** — identifies missing skills and suggests free learning resources
+1. **Resume Fix** — rewrites bullet points to match job description keywords
+2. **Cover Letter** — generates a professional 3-paragraph cover letter
+3. **How to Speak** — provides scripts for self-introductions, project explanations, and interview answers
+4. **Skill Gaps** — identifies missing skills and suggests free learning resources
 
 All results are saved to your history, and you can download a full PDF report.
 
@@ -38,7 +38,7 @@ LangGraph orchestrates 4 AI agents running in parallel
 Each agent calls Groq LLM (llama-3.3-70b-versatile) via LangChain
            ├─ Resume Tailor Agent
            ├─ Cover Letter Agent
-           ├─ Interview Prep Agent
+           ├─ How to Speak Agent
            └─ Skill Gap Agent
            ↓
 Results saved to Supabase database
@@ -59,12 +59,14 @@ Frontend displays results in tabs + PDF download option
 - **React Router** — Client-side routing
 - **Axios** — HTTP client for API calls
 - **Lucide React** — Icon library
+- **Framer Motion** — Animation library
 
 ### Backend
 - **FastAPI** — Modern Python web framework with async support
 - **PyMuPDF** — PDF text extraction
 - **ReportLab** — PDF generation for downloadable reports
 - **Pydantic** — Data validation and settings
+- **HTTPX** — Async HTTP client
 
 ### AI & Orchestration
 - **LangChain** — LLM abstraction layer (connects to Groq)
@@ -76,6 +78,8 @@ Frontend displays results in tabs + PDF download option
   - Auth — User sign up / sign in with JWT tokens
   - Database — Stores analysis history with Row Level Security
   - Storage — Stores uploaded resume PDFs (private bucket)
+- **Render** — Backend deployment platform (configuration included)
+- **Vercel** — Frontend deployment platform
 
 ---
 
@@ -88,12 +92,18 @@ CareerPilot/
 │       ├── pages/     → Login, Dashboard, Results, History
 │       ├── components/→ Navbar
 │       ├── context/   → AuthContext (Supabase auth)
-│       └── lib/       → api.js (Axios), supabaseClient.js
+│       ├── lib/       → api.js (Axios), supabaseClient.js
+│       ├── App.jsx
+│       └── main.jsx
 ├── backend/           → FastAPI
 │   ├── agents/        → resume_tailor.py, cover_letter.py, interview_prep.py, skill_gap.py
 │   ├── graph/         → langgraph_pipeline.py  (parallel fan-out)
 │   ├── routes/        → upload.py, analyze.py, history.py
-│   └── utils/         → pdf_parser.py, pdf_generator.py, supabase_client.py
+│   ├── utils/         → pdf_parser.py, pdf_generator.py, supabase_client.py, deps.py
+│   ├── config.py
+│   ├── main.py
+│   ├── render.yaml    → Render deployment config
+│   └── requirements.txt
 └── supabase/
     └── schema.sql     → DB schema + RLS policies
 ```
@@ -187,10 +197,10 @@ Frontend will run at `http://localhost:5173`
 
 ## Features
 
-- **📄 Resume Tailoring** — Rewrites your resume bullet points to match job description keywords
-- **✉️ Cover Letter Generation** — Creates a professional 3-paragraph cover letter tailored to the role
-- **🎤 Interview Prep** — Generates 10 role-specific Q&A pairs (behavioral, technical, situational)
-- **📊 Skill Gap Analysis** — Identifies missing skills and suggests free learning resources
+- **📄 Resume Fix** — Rewrites your resume bullet points to match job description keywords
+- **✉️ Cover Letter** — Creates a professional 3-paragraph cover letter tailored to the role
+- **🎤 How to Speak** — Provides scripts for self-introductions, project explanations, and interview answers
+- **📊 Skill Gaps** — Identifies missing skills and suggests free learning resources
 - **📥 PDF Export** — Download a full report with all AI-generated content
 - **📜 History** — All past analyses saved and accessible anytime
 - **🔐 Secure Auth** — User authentication via Supabase with JWT tokens
@@ -220,6 +230,8 @@ Frontend will run at `http://localhost:5173`
    - `GROQ_API_KEY`
    - `FRONTEND_URL` (your deployed frontend URL)
 4. Deploy — Render will auto-deploy on every push
+
+**Note:** The project includes a `render.yaml` configuration file for easier deployment on Render.
 
 ---
 
